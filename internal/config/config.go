@@ -49,7 +49,7 @@ func LoadConfigs(requestedServices []string) Configs {
 			logConfig.ServerName = serverName
 			configs[LoggerConfigKey] = logConfig
 		case MetricsConfigKey:
-			metricsConfig := &MetricsConfig{
+			metricsConfig := MetricsConfig{
 				ServerName: serverName,
 			}
 			configs[MetricsConfigKey] = metricsConfig
@@ -72,7 +72,7 @@ func getLoggerConfig() LoggerConfig {
 		Format:     format,
 	}
 }
-func getDefaultCalculatorConfig() *CalculatorConfig {
+func getDefaultCalculatorConfig() CalculatorConfig {
 	version := getEnv("CALCULATOR_VERSION", "1.0.0")
 	port := getEnv("CALCULATOR_PORT", "8080")
 	storageType := getEnv("CALCULATOR_STORAGE_TYPE", "memory")
@@ -81,7 +81,7 @@ func getDefaultCalculatorConfig() *CalculatorConfig {
 	writeTimeout := time.Second * time.Duration(getEnvAsInt("CALCULATOR_WRITE_TIMEOUT", 10))
 	idleTimeout := time.Second * time.Duration(getEnvAsInt("CALCULATOR_IDLE_TIMEOUT", 120))
 
-	return &CalculatorConfig{
+	return CalculatorConfig{
 		Version:         version,
 		StorageType:     storageType,
 		StorageFilePath: storageFilePath,

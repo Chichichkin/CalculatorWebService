@@ -1,40 +1,138 @@
-# Technical Test Task – Backend Development
+# Calculator Web Service
 
-This small task is designed to assess your skills in developing web services. The task is intentionally simple but provides insight into your coding style, architectural decisions, and ability to implement requirements pragmatically.
+A REST API service in Go that provides basic arithmetic operations with calculation history storage.
 
-## Task: Implementation of a Simple Calculator Web Service
+## Features
 
-Create a web service in Go (Golang) that supports basic arithmetic operations.
+- **Arithmetic Operations**: Addition, subtraction, multiplication, division
+- **Storage Options**: In-memory or file-based persistence
+- **Recent Calculations**: Retrieve last N calculations (default: 5, max: 20)
+- **Metrics**: Prometheus metrics endpoint
+- **Logging**: Structured logging with configurable levels
 
-### Technical Specifications
+## API Endpoints
 
-The web service should provide the following operations:
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/calculate/addition` | Add two numbers |
+| POST | `/calculate/subtraction` | Subtract two numbers |
+| POST | `/calculate/multiplication` | Multiply two numbers |
+| POST | `/calculate/division` | Divide two numbers |
+| GET | `/calculate/recent` | Get recent calculations |
+| GET | `/metrics` | Prometheus metrics |
 
-| Operation | Input Parameters | Return Value |
-|-----------|------------------|--------------|
-| Addition | `float SummandOne`, `float SummandTwo` | `float Sum` |
-| Subtraction | `float Minuend`, `float Subtrahend` | `float Difference` |
-| Multiplication | `float FactorOne`, `float FactorTwo` | `float Product` |
-| Division | `float Dividend`, `float Divisor` | `float Quotient` |
-| Recent Results | optional: `int RecentN` (Default: 5, max: 20) | List of the last N calculations in any format (e.g., `["1 + 2 = 3", "3 * 5 = 15", ...]`) |
+### Request Format
+```json
+{
+  "operand1": 10.5,
+  "operand2": 2.5
+}
+```
 
-### Additional Requirements
+### Response Format
+```json
+{
+  "result": 13.0,
+  "operation": "addition",
+  "expression": "10.5 + 2.5 = 13.0"
+}
+```
 
-- Recent calculations should be stored in-memory by default.
-- Optionally, the web service should be startable with a persistence mode (e.g., via command-line parameter).
-    - In this case, calculations should be stored in a local file and reloaded on startup.
-    - The type of persistence (JSON file, SQLite, etc.) is up to you.
+## Local Development
 
-### Implementation Notes
+### Prerequisites
+- Go 1.25+
+- Make (optional)
 
-- The technical framework (REST, gRPC, GraphQL, etc.) is freely selectable – choose what seems most appropriate to you.
-- Ensure clean, understandable code structures.
-- Logging, error handling, modularity, and API documentation (e.g., OpenAPI) are welcome but not mandatory.
+### Quick Start
+```bash
+# Clone and navigate to project
+git clone <repository-url>
+cd CalculatorWebService
 
-### Goal
+# Run with memory storage (default)
+go run ./cmd/main.go
 
-The goal is not a perfect or feature-rich service, but clearly structured, functional, and easily understandable code that you develop within a realistic timeframe.
+# Run with file storage
+export CALCULATOR_STORAGE_TYPE=file # Default memory
+export CALCULATOR_STORAGE_PATH=%prefered path% # Default ./storage.txt
+touch storage.txt  # Create file if it doesn't exist
+go run ./cmd/main.go
+```
 
-### Submission
+### Environment Variables
+Here is the example of environment variables you can set:
+```bash
+CALCULATOR_PORT=8080                    # Server port
+CALCULATOR_STORAGE_TYPE=memory          # Storage type: memory|file
+CALCULATOR_STORAGE_PATH=./storage.txt   # File path for file storage
+LOG_LEVEL=info                          # Log level: debug|info|warn|error
+LOG_FORMAT=text                         # Log format: text|json
+```
+Rest can be found in `config/config.go` or `docker-compose.yml`
+### Testing
+```bash
+# Test addition
+curl -X POST http://localhost:8080/calculate/addition \
+  -H "Content-Type: application/json" \
+  -d '{"operand1": 5, "operand2": 3}'
 
-Please submit the source code as a repository (e.g., GitHub, GitLab, or ZIP) – ideally with a brief README on how to start and test the service.
+# Get recent calculations
+curl http://localhost:8080/calculate/recent
+
+# Check metrics
+curl http://localhost:8080/metrics
+```
+
+## Docker Deployment
+
+### Using Docker Compose (Recommended)
+```bash
+# Start services
+make compose-up
+
+# Services available at:
+# - Calculator (memory): http://localhost:8080
+# - Calculator (file): http://localhost:8081
+# - Prometheus: http://localhost:9090
+
+# Run tests
+make test-api
+make test-memory
+make test-file
+
+# Stop services
+make compose-down
+```
+
+### Manual Docker Build
+```bash
+# Build image
+docker build -t calculator-service .
+
+# Run with memory storage
+docker run -p 8080:8080 calculator-service
+
+# Run with file storage
+docker run -p 8080:8080 \
+  -e CALCULATOR_STORAGE_TYPE=file \
+  -e CALCULATOR_STORAGE_PATH=/app/storage/calculations.txt \
+  -v $(pwd)/storage:/app/storage \
+  calculator-service
+```
+
+## Available Make Commands
+
+```bash
+make help              # Show all commands
+make build             # Build Go binary
+make run               # Run locally
+make test              # Run Go tests
+make docker-build      # Build Docker image
+make compose-up        # Start with Docker Compose
+make compose-down      # Stop services
+make test-api          # Test API endpoints
+make test-memory       # Test memory storage
+make test-file         # Test file storage
+make health            # Check service health
+```

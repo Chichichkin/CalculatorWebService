@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'calculator-services'
+    static_configs:
+      - targets: ['calculator-service-memory:8080', 'calculator-service-file:8080']

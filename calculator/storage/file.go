@@ -74,7 +74,7 @@ func (f *FileStorage) load() error {
 }
 
 func (f *FileStorage) save() error {
-	file, err := os.OpenFile(f.filename, os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(f.filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}

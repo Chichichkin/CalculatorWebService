@@ -9,6 +9,7 @@ type Storage interface {
 }
 
 func NewStorage(storageType, filename string) (Storage, error) {
+	// creating const for single use seems unnecessary
 	switch storageType {
 	case "file":
 		return NewFileStorage(filename)

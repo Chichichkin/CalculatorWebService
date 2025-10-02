@@ -10,8 +10,8 @@ import (
 )
 
 type Request struct {
-	Operand1 float64 `form:"operand1" json:"operand1" binding:"required"`
-	Operand2 float64 `form:"operand2" json:"operand2" binding:"required"`
+	Operand1 float64 `form:"operand1" json:"operand1"`
+	Operand2 float64 `form:"operand2" json:"operand2"`
 }
 
 type Response struct {
@@ -27,6 +27,12 @@ type RecentResponse struct {
 type Handler struct {
 	Storage storage.Storage
 }
+
+// Considering the scope of the service it's okay to use a single instance of Handler and perform the logic inside methods.
+// In real world scenarios, it's better to separate business logic from handlers.
+// handlers should ideally just handle HTTP specifics (parsing requests, validating requests, forming responses) and delegate business logic to separate services.
+// For example, we could have a CalculatorService struct that would handle the operations and storage interactions.
+// Handlers would then call methods on that service.
 
 func NewCalculationHandler(storage storage.Storage) *Handler {
 	return &Handler{

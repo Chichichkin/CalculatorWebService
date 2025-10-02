@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  calculator-memory:
+    build: .
+    container_name: calculator-service-memory
+    ports:
+      - "8080:8080"
+    environment:
+      # Calculator configuration
+      - CALCULATOR_PORT=8080
+      - CALCULATOR_STORAGE_TYPE=memory
+      - CALCULATOR_STORAGE_PATH=/app/storage/calculations.txt
+      - CALCULATOR_VERSION=1.0.0
+      - CALCULATOR_READ_TIMEOUT=5
+      - CALCULATOR_WRITE_TIMEOUT=10
+      - CALCULATOR_IDLE_TIMEOUT=120
+
+      # Logger configuration
+      - LOG_LEVEL=info
+      - LOG_FORMAT=text
+      - LOG_TIME_FORMAT=2006-01-02 15:04:05
+      - SERVER_NAME=calculator-service-memory
+
+      # Metrics configuration
+      - METRICS_ENABLED=true
+    volumes:
+      - calculator_memory_storage:/app/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  calculator-file:
+    build: .
+    container_name: calculator-service-file
+    ports:
+      - "8081:8080"
+    environment:
+      # Calculator configuration
+      - CALCULATOR_PORT=8080
+      - CALCULATOR_STORAGE_TYPE=file
+      - CALCULATOR_STORAGE_PATH=/app/storage/calculations.txt
+      - CALCULATOR_VERSION=1.0.0
+      - CALCULATOR_READ_TIMEOUT=5
+      - CALCULATOR_WRITE_TIMEOUT=10
+      - CALCULATOR_IDLE_TIMEOUT=120
+
+      # Logger configuration
+      - LOG_LEVEL=info
+      - LOG_FORMAT=text
+      - LOG_TIME_FORMAT=2006-01-02 15:04:05
+      - SERVER_NAME=calculator-service-file
+
+      # Metrics configuration
+      - METRICS_ENABLED=true
+    volumes:
+      - calculator_file_storage:/app/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Prometheus for metrics collection (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  calculator_memory_storage:
+  calculator_file_storage:
+  prometheus_data:
