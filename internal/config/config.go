@@ -39,6 +39,8 @@ type MetricsConfig struct {
 	ServerName     string `json:"server_name"`
 }
 
+// LoadConfigs is a pseudo factory pattern to load requested configurations
+// a bit overkill for this case, but could be useful in a more complex scenario
 func LoadConfigs(requestedServices []string) Configs {
 	configs := make(map[string]interface{})
 	serverName := getEnv("SERVER_NAME", "unknown_server")

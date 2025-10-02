@@ -3,6 +3,7 @@ package metrics
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -17,6 +18,7 @@ type Metrics struct {
 	Handler    *http.Handler
 	Counters   map[string]*prometheus.CounterVec
 	baseLabels prometheus.Labels
+	mu         sync.RWMutex
 }
 
 func NewMetrics(initConfig config.MetricsConfig) *Metrics {
@@ -43,6 +45,10 @@ func (m *Metrics) SetupBaseLabels(config config.MetricsConfig) {
 	}
 }
 
+// CountInc gives flex ability to have multiple metrics on the go wherever needed
+// with different labels as needed. Base labels are added automatically.
+// Metric is created on the fly if it does not exist yet.
+// TODO: more use cases?
 func (m *Metrics) CountInc(metricName string, labels prometheus.Labels) {
 	metric := m.getCounter(metricName, labels)
 	if metric == nil {
@@ -76,7 +82,14 @@ func (m *Metrics) newCounter(metricName string, labels prometheus.Labels) *prome
 		Name: metricName,
 		Help: fmt.Sprintf("Counter for %s", metricName),
 	}, labelsNames)
-	m.Counters[metricName] = metric
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, exist := m.Counters[metricName]; exist {
+		// someone else created it in the meantime
+		return m.Counters[metricName]
+	} else {
+		m.Counters[metricName] = metric
+	}
 	return metric
 }
 
@@ -84,7 +97,9 @@ func (m *Metrics) getCounter(metricName string, labels prometheus.Labels) *prome
 	if metricName == "" {
 		return nil
 	}
+	m.mu.RLock()
 	metric, exist := m.Counters[metricName]
+	m.mu.RUnlock()
 	if !exist {
 		metric = m.newCounter(metricName, labels)
 	}
