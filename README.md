@@ -47,16 +47,17 @@ A REST API service in Go that provides basic arithmetic operations with calculat
 ### Quick Start
 ```bash
 # Clone and navigate to project
-git clone <repository-url>
+git clone https://github.com/Chichichkin/CalculatorWebService.git
 cd CalculatorWebService
 
 # Run with memory storage (default)
 go run ./cmd/main.go
 
 # Run with file storage
-export CALCULATOR_STORAGE_TYPE=file # Default memory
+export CALCULATOR_STORAGE_TYPE=file
 export CALCULATOR_STORAGE_PATH=%prefered path% # Default ./storage.txt
-touch storage.txt  # Create file if it doesn't exist
+touch storage.txt  # Create file if it doesn't exist. It will be created automatically on shutdown.
+
 go run ./cmd/main.go
 ```
 
